@@ -1,0 +1,445 @@
+/* ===== GENERAL STYLES ===== */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+/* ===== WELCOME PAGE ===== */
+#welcome-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Nouvel arrière-plan avec l'image de la Banque Mondiale */
+#welcome-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('images/worldbank-logo.png') no-repeat center center;
+  background-size: cover;
+  opacity: 0.12; /* Opacité réduite pour que le logo soit en filigrane */
+  z-index: -1;
+}
+
+/* Gradient par-dessus l'image pour améliorer la lisibilité */
+#welcome-page::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(30, 87, 153, 0.95), rgba(32, 124, 202, 0.9));
+  z-index: -1;
+}
+
+.welcome-container {
+  width: 80%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px;
+  background-color: rgba(255, 255, 255, 0.95); /* Fond légèrement transparent */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  text-align: center;
+  z-index: 10; /* S'assurer que le contenu est au-dessus du fond */
+  backdrop-filter: blur(5px); /* Effet de flou sous le conteneur */
+  -webkit-backdrop-filter: blur(5px); /* Pour Safari */
+}
+
+.welcome-container h1 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 2.2em;
+}
+
+.welcome-container p {
+  color: #7f8c8d;
+  margin-bottom: 30px;
+  font-size: 1.2em;
+}
+
+.logo {
+  max-width: 180px;
+  margin-bottom: 25px;
+  /* Aucune opacité ici car c'est le logo à l'intérieur du conteneur */
+}
+
+/* ===== BUTTONS ===== */
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 30px;
+  align-items: center;
+}
+
+.start-btn, .help-btn, .guide-btn {
+  width: 80%;
+  padding: 12px !important;
+  font-size: 16px !important;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.start-btn:hover, .help-btn:hover, .guide-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.start-btn {
+  background-color: #3498db !important;
+  color: white !important;
+}
+
+.help-btn {
+  background-color: #2ecc71 !important;
+  color: white !important;
+}
+
+.guide-btn {
+  background-color: #9b59b6 !important;
+  color: white !important;
+}
+
+/* ===== HEADER (ANCIEN) ===== */
+/* (Conserve cet ancien header pour d'éventuels ajustements ou en complément du nouveau header) */
+.header {
+  background: url('../images/header-bg.jpg') no-repeat center center;
+  background-size: cover;
+  padding: 90px 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.header:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(44, 62, 80, 0.8);
+}
+
+.header-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.header-logo {
+  height: 80px;
+  margin-right: 20px;
+}
+
+.header h2 {
+  color: white;
+  margin: 0;
+  font-size: 24px;
+}
+
+/* ===== NEW SURVEY HEADER ===== */
+.survey-header {
+  position: relative;
+  margin-bottom: 3rem;
+  overflow: hidden;
+}
+
+.survey-header img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  filter: brightness(0.7);
+  border-radius: 0 0 15px 15px;
+}
+
+.header-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+  width: 100%;
+}
+
+.header-overlay h2 {
+  font-size: 36px;
+  margin: 0 0 10px;
+}
+
+#timer-container {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffd700;  /* Jaune doré pour rappeler une horloge */
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ===== NAVIGATION ===== */
+.nav-container {
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 10px 20px;
+  margin-bottom: 20px;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding: 0 15px;
+}
+
+/* Style des onglets */
+.nav-pills .nav-link {
+  color: #7f8c8d;
+  border-radius: 4px;
+  padding: 8px 15px;
+  margin: 0 2px;
+  font-size: 14px;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #3498db;
+  color: white;
+}
+
+/* ===== CONTENT ===== */
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.section-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.section-card h3 {
+  border-bottom: 1px solid #ecf0f1;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+  color: #3498db;
+  font-size: 20px;
+}
+
+.section-card h3 i {
+  margin-right: 10px;
+}
+
+/* ===== TIMER ===== */
+/* Si vous souhaitez utiliser l'id #timer directement */
+#timer {
+  font-size: 18px;
+  font-weight: bold;
+  color: #e74c3c;
+  text-align: right;
+  margin: 10px 0;
+}
+
+/* ===== FORM ELEMENTS ===== */
+label {
+  font-weight: 500;
+  color: #34495e;
+}
+
+.form-control, .selectize-input {
+  border-radius: 4px;
+  border: 1px solid #dce4ec;
+  padding: 8px 12px;
+  height: auto;
+  box-shadow: none;
+}
+
+.form-control:focus, .selectize-input.focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Style des boutons radio et checkbox */
+.pretty .state label:before {
+  border-color: #bdc3c7;
+}
+
+.pretty.p-default input:checked~.state label:after {
+  background-color: #3498db !important;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.action-button:hover {
+  background-color: #2980b9;
+}
+
+#geoBtn {
+  margin-bottom: 15px;
+}
+
+/* ===== LEAFLET MAP ===== */
+.leaflet-container {
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 15px;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  background-color: #fff;
+  padding: 15px 20px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  text-align: center;
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* ===== MODAL ===== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1050;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative;
+  width: 80%;
+  max-width: 700px;
+  animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+  from {opacity: 0; transform: translateY(-50px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+.close {
+  position: absolute;
+  right: 20px;
+  top: 15px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #555;
+}
+
+/* ===== VALIDATION ERRORS ===== */
+.error-list {
+  background-color: #fdedeb;
+  border-left: 4px solid #e74c3c;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+
+.error-list h4 {
+  color: #c0392b;
+  margin-top: 0;
+}
+
+.error-list ul {
+  margin-bottom: 0;
+  padding-left: 20px;
+}
+
+.error-list li {
+  color: #e74c3c;
+}
+
+/* ===== DOWNLOAD BUTTON ===== */
+.download-btn {
+  margin-top: 15px;
+  background-color: #27ae60 !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .header-logo {
+      height: 60px;
+  }
+  
+  .header h2 {
+      font-size: 20px;
+  }
+  
+  .nav-pills .nav-link {
+      padding: 6px 10px;
+      font-size: 12px;
+  }
+  
+  .section-card {
+      padding: 15px;
+  }
+  
+  .modal-content {
+      width: 95%;
+      margin: 15% auto;
+  }
+  
+  .footer {
+      flex-direction: column;
+      gap: 10px;
+  }
+  
+  .welcome-container {
+      width: 90%;
+      padding: 30px 20px;
+  }
+}
+
+/* Animation pour les transitions de page */
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}

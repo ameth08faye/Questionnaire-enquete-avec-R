@@ -1,0 +1,278 @@
+# server.R - Logique côté serveur de l'application
+
+library(shiny)
+library(shinyWidgets)
+library(leaflet)
+library(sf)
+library(dplyr)
+
+# Chargement des modules et fonctions globales
+source("modules/conditionalSelectModule.R")
+source("modules/otherOptionModule.R")
+source("modules/geoModule.R")
+
+
+server <- function(input, output, session) {
+  
+  ## 1. Navigation entre les pages (onglets)
+  currentPage <- reactiveVal("page0")
+  
+  observeEvent(input$nextBtn, {
+    pages <- c("page0", "page1", "page2", "page3", "page4", "page5", "final")
+    idx <- match(currentPage(), pages)
+    if (!is.na(idx) && idx < length(pages)) {
+      newPage <- pages[idx + 1]
+      currentPage(newPage)
+      updateTabsetPanel(session, "wizard", selected = newPage)
+    }
+  })
+  
+  observeEvent(input$prev, {
+    pages <- c("page0", "page1", "page2", "page3", "page4", "page5", "final")
+    idx <- match(currentPage(), pages)
+    if (!is.na(idx) && idx > 1) {
+      newPage <- pages[idx - 1]
+      currentPage(newPage)
+      updateTabsetPanel(session, "wizard", selected = newPage)
+    }
+  })
+  
+  observeEvent(input$wizard, {
+    currentPage(input$wizard)
+  })
+  
+  ## 2. Téléchargements
+  output$download_guide <- downloadHandler(
+    filename = function() { "Guide_Utilisation_Application_Enquete.pdf" },
+    content = function(file) {
+      file.copy("www/Guide_Utilisation_Application_Enquete.pdf", file)
+    }
+  )
+  
+  output$download_data <- downloadHandler(
+    filename = function() {
+      paste("donnees_enquete_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv", sep = "")
+    },
+    content = function(file) {
+      df <- flattenResponses(responses())
+      write.csv(df, file, row.names = FALSE)
+    }
+  )
+  
+  ## 3. Rendu dynamique du contenu du questionnaire
+  output$pageContent <- renderUI({
+    switch(
+      currentPage(),
+      "page0" = div(class = "section-card",
+                    h3(icon("map-marked-alt"), "Localisation"),
+                    fluidRow(
+                      column(8, 
+                             actionBttn("geoBtn", "Géolocalisation automatique", 
+                                        icon = icon("location-crosshairs"), 
+                                        style = "material-flat", color = "primary"),
+                             textInput("coords", "Coordonnées GPS")
+                      ),
+                      column(4, leafletOutput("map", height = "250px"))
+                    ),
+                    fluidRow(
+                      column(12,
+                             textInput("zone", "Zone de dénombrement", value = "Prérempli"),
+                             fluidRow(
+                               column(4, 
+                                      textInput("pays", "Pays", value = "Sénégal") %>% 
+                                        tagAppendAttributes(disabled = "disabled")
+                               ),
+                               column(4, uiOutput("region_ui")),
+                               column(4, uiOutput("dept_ui"))
+                             ),
+                             fluidRow(
+                               column(4, uiOutput("commune_ui"))
+                             )
+                      )
+                    )
+      ),
+      "page1" = div(class = "section-card",
+                    h3(icon("users"), "Information entretien"),
+                    textInput("num_compose", "Numéro composé"),
+                    conditionalSelectQuestionUI("participation",
+                                                label = "Participation acceptée ?",
+                                                choices = c("Oui", "Non"),
+                                                triggerValue = "Non",
+                                                followUpLabel = "Raison du refus"),
+                    textInput("nom_repondant", "Nom du répondant")
+      ),
+      "page2" = div(class = "section-card",
+                    h3(icon("user-plus"), "Membres du ménage"),
+                    textInput("nouveaux_membres", "Nouveaux membres"),
+                    radioGroupButtons("membre_present", "Membre toujours présent ?",
+                                      choices = c("Oui", "Non"), status = "primary"),
+                    textInput("raison_depart", "Raison du départ")
+      ),
+      "page3" = div(class = "section-card",
+                    h3(icon("shield-virus"), "Connaissances COVID-19"),
+                    awesomeRadio("entendu_corona", "Connaissance du COVID-19 ?",
+                                 choices = c("Oui", "Non"), status = "warning"),
+                    uiOutput("q3Detail")
+      ),
+      "page4" = div(class = "section-card",
+                    h3(icon("hands-wash"), "Comportements préventifs"),
+                    radioGroupButtons("se_laver", "Lavage des mains fréquent ?",
+                                      choices = c("Oui", "Non"), status = "primary"),
+                    radioGroupButtons("eviter_contact", "Éviter les contacts ?",
+                                      choices = c("Oui", "Non"), status = "primary"),
+                    radioGroupButtons("eviter_rassemblement", "Éviter les rassemblements ?",
+                                      choices = c("Oui", "Non"), status = "primary"),
+                    radioGroupButtons("annuler_voyage", "Voyages annulés ?",
+                                      choices = c("Oui", "Non"), status = "primary"),
+                    radioGroupButtons("stock_nourriture", "Stocks de nourriture ?",
+                                      choices = c("Oui", "Non"), status = "primary")
+      ),
+      "page5" = div(class = "section-card",
+                    h3(icon("briefcase"), "Situation professionnelle"),
+                    radioGroupButtons("travail_semaine", "Travail récent ?",
+                                      choices = c("Oui", "Non"), status = "primary"),
+                    radioGroupButtons("travailliez_avant", "Travail avant COVID ?",
+                                      choices = c("Oui", "Non"), status = "primary"),
+                    uiOutput("q503UI"),
+                    selectInput("activite_principale", "Activité principale",
+                                choices = c("Agriculture", "Extraction", "Manufacturière", "Services", "Autre")),
+                    awesomeCheckboxGroup("mode_travail", "Mode de travail",
+                                         choices = c("Indépendant", "Familial", "Salarié"))
+      ),
+      "final" = div(class = "section-card",
+                    h3("Vérification finale"),
+                    uiOutput("validation_errors"),
+                    actionBttn("submit", "Soumettre le questionnaire",
+                               icon = icon("paper-plane"),
+                               style = "bordered", color = "success"),
+                    br(), br(),
+                    downloadButton("download_responses", "Télécharger les réponses (CSV)",
+                                   icon = icon("file-csv"), class = "download-btn")
+      )
+    )
+  })
+  
+  ## 4. Gestion des listes déroulantes pour la localisation
+  output$region_ui <- renderUI({
+    selectInput("region_select", "Région", choices = c("Sélectionner" = "", regions_list), selected = "")
+  })
+  
+  output$dept_ui <- renderUI({
+    req(input$region_select)
+    if (input$region_select == "") {
+      selectInput("dept_select", "Département", choices = c("Sélectionner d'abord une région" = ""))
+    } else {
+      depts <- region_dept_mapping[[input$region_select]]
+      selectInput("dept_select", "Département", choices = c("Sélectionner" = "", depts))
+    }
+  })
+  
+  output$commune_ui <- renderUI({
+    req(input$dept_select)
+    if (input$dept_select == "") {
+      selectInput("commune_select", "Commune", choices = c("Sélectionner d'abord un département" = ""))
+    } else {
+      communes <- dept_commune_mapping[[input$dept_select]]
+      selectInput("commune_select", "Commune", choices = c("Sélectionner" = "", communes))
+    }
+  })
+  
+  ## 5. Mise à jour de la carte Leaflet
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      setView(lng = -14.4529, lat = 14.4974, zoom = 7)
+  })
+  
+  # --- Intégration du module geoModule pour le zoom ---
+  # Initialiser le module avec les shapefiles de référence
+  geo <- geoModuleServer("geo", adm0_SN, adm1_SN, adm2_SN, adm3_SN)
+  
+  # Utiliser les fonctions du module pour mettre à jour la carte en fonction de la sélection
+  observeEvent(input$region_select, {
+    req(input$region_select != "")
+    geo$updateWithRegion(input$region_select)
+  })
+  
+  observeEvent(input$dept_select, {
+    req(input$dept_select != "")
+    geo$updateWithDept(input$dept_select)
+  })
+  
+  observeEvent(input$commune_select, {
+    req(input$commune_select != "")
+    geo$updateWithCommune(input$commune_select)
+  })
+  
+  ## 6. Géolocalisation (reste inchangé)
+  observeEvent(input$geoBtn, {
+    session$sendCustomMessage(type = "getLocation", message = list())
+  })
+  
+  observeEvent(input$geolocation, {
+    if (!is.null(input$geolocation)) {
+      coords <- paste0(input$geolocation$lat, ", ", input$geolocation$lng)
+      updateTextInput(session, "coords", value = coords)
+      leafletProxy("map") %>%
+        clearMarkers() %>%
+        addMarkers(lng = input$geolocation$lng, lat = input$geolocation$lat, popup = "Votre position")
+    }
+  })
+  
+  ## 7. Timer de l'enquête
+  timer_start <- reactiveVal(NULL)
+  
+  # Démarrage du timer dès que "Commencer l'enquête" est cliqué
+  observeEvent(input$start_clicked, {
+    timer_start(as.POSIXct(input$start_clicked / 1000, origin = "1970-01-01"))
+  })
+  
+  output$timer <- renderText({
+    req(timer_start())
+    invalidateLater(1000, session)
+    elapsed <- difftime(Sys.time(), timer_start(), units = "secs")
+    paste(round(elapsed, 0), "secondes")
+  })
+  
+  ## 8. Soumission du questionnaire
+  responses <- reactiveVal(list())
+  
+  observeEvent(input$submit, {
+    duration <- as.numeric(difftime(Sys.time(), timer_start(), units = "secs"))
+    all_responses <- collectResponses(input)
+    all_responses$duration <- duration
+    responses(all_responses)
+    showModal(modalDialog(
+      title = "Succès",
+      paste("Le questionnaire a été soumis avec succès ! Durée effective :", duration, "secondes"),
+      footer = modalButton("Fermer")
+    ))
+  })
+  
+  ## 9. Autres éléments (Questions conditionnelles)
+  output$q3Detail <- renderUI({
+    req(input$entendu_corona)
+    if (input$entendu_corona == "Oui") {
+      tagList(
+        otherOptionQuestionUI("mesures_adoptees",
+                              label = "Mesures adoptées",
+                              mainChoices = c("Lavage mains", "Désinfectant", "Rassemblements", "Masque")),
+        otherOptionQuestionUI("mesures_gouv",
+                              label = "Mesures gouvernementales",
+                              mainChoices = c("Confinement", "Couvre-feu", "Fermeture écoles"))
+      )
+    }
+  })
+  
+  output$q503UI <- renderUI({
+    req(input$travailliez_avant)
+    if (input$travailliez_avant == "Non") {
+      textInput("raison_arret", "Raison de l'arrêt de travail")
+    }
+  })
+  
+  participation_data <- conditionalSelectQuestionServer("participation")
+  mesures_adoptees_data <- otherOptionQuestionServer("mesures_adoptees")
+  mesures_gouv_data <- otherOptionQuestionServer("mesures_gouv")
+  
+}
